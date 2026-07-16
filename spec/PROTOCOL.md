@@ -125,7 +125,7 @@ A conforming implementation MUST preserve all of the following invariants:
 
 ## 5. System architecture
 
-An MissionWeave deployment contains at least:
+A MissionWeave deployment contains at least:
 
 * an Organization-controlled Agent Registry;
 * a Group Authority and durable Group Event store;
