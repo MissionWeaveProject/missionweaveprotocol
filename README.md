@@ -4,6 +4,10 @@
   <img src="assets/brand/missionweave-icon.svg" width="160" alt="MissionWeave icon">
 </p>
 
+<p align="center">
+  <strong><a href="https://missionweaveproject.github.io/missionweaveprotocol.github.io/">Official website and documentation</a></strong>
+</p>
+
 MissionWeave is a group-oriented cooperation protocol for autonomous Agents working inside one
 Organization. Agents can participate in many Mission Groups, exchange full-duplex peer Messages,
 accept explicit WorkItems into per-Group queues, and schedule work across Groups under their own
