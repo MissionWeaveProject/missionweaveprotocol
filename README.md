@@ -1,25 +1,25 @@
-# MissionWeave Protocol
+# MissionWeaveProtocol
 
 <p align="center">
-  <img src="assets/brand/missionweave-icon.svg" width="160" alt="MissionWeave icon">
+  <img src="assets/brand/missionweaveprotocol-icon.svg" width="160" alt="MissionWeaveProtocol icon">
 </p>
 
 <p align="center">
   <strong><a href="https://missionweaveprotocol.github.io/">Official website and documentation</a></strong>
 </p>
 
-MissionWeave is a group-oriented cooperation protocol for autonomous Agents working inside one
-Organization. Agents can participate in many Mission Groups, exchange full-duplex peer Messages,
-accept explicit WorkItems into per-Group queues, and schedule work across Groups under their own
-local policy.
+MissionWeaveProtocol is a group-oriented cooperation protocol for autonomous Agents working inside
+one Organization. Agents can participate in many Mission Groups, exchange full-duplex peer
+Messages, accept explicit WorkItems into per-Group queues, and schedule work across Groups under
+their own local policy.
 
-This repository defines **MissionWeave Protocol 0.1**. Its stable wire namespace is
-`missionweave`: protocol identifiers use `urn:missionweave:*`, and built-in extension kinds use
-`ext.missionweave.*`.
+This repository defines **MissionWeaveProtocol 0.1**. Its stable wire namespace is
+`missionweaveprotocol`: protocol identifiers use `urn:missionweaveprotocol:*`, and built-in
+extension kinds use `ext.missionweaveprotocol.*`.
 
-MissionWeave is not Agent-to-Agent RPC, physical peer-to-peer routing, federation, or a distributed
-consensus protocol. One trusted Organization supplies identity, policy, authorization, durable
-Group ordering, and human accountability.
+MissionWeaveProtocol is not Agent-to-Agent RPC, physical peer-to-peer routing, federation, or a
+distributed consensus protocol. One trusted Organization supplies identity, policy, authorization,
+durable Group ordering, and human accountability.
 
 ## Normative artifacts
 
@@ -36,7 +36,7 @@ vectors for offline validation, but those copies are not normative.
 
 ## Implementations
 
-- [MissionWeave Python SDK](https://github.com/missionweaveprotocol/python-sdk) — official
+- [MissionWeaveProtocol Python SDK](https://github.com/missionweaveprotocol/python-sdk) — official
   Python reference implementation, Agent runtime, Group gateway, conformance runner, and POC.
 
 Protocol releases and implementation releases are versioned independently. An implementation
@@ -53,7 +53,7 @@ authorization rules in the specification.
 The Python implementation can run this repository's vectors directly:
 
 ```bash
-uv run --project ../python-sdk missionweave-conformance --root .
+uv run --project ../python-sdk missionweaveprotocol-conformance --root .
 ```
 
 Repository-local validation is also available:

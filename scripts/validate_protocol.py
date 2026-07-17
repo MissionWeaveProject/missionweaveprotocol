@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_ROOT = ROOT / "schemas"
 VECTOR_ROOT = ROOT / "conformance" / "vectors"
 MANIFEST_PATH = ROOT / "conformance" / "manifest.json"
-SCHEMA_ID_BASE = "https://missionweave.dev/schemas/0.1/"
+SCHEMA_ID_BASE = "https://missionweaveprotocol.dev/schemas/0.1/"
 
 
 class ProtocolValidationError(RuntimeError):

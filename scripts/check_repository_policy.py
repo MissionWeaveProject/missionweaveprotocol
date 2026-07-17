@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reject retired naming in repository file contents and paths."""
+"""Reject noncanonical identity and retired naming in repository contents and paths."""
 
 from __future__ import annotations
 
@@ -25,12 +25,12 @@ FORBIDDEN = (
         ),
     ),
     (
-        "retired protocol repository slug",
-        re.compile(_joined("MissionWeave", "Protocol")),
+        "incomplete display identity",
+        re.compile(_joined("Mission", "Weave", r"(?!Protocol)")),
     ),
     (
-        "retired Python repository slug",
-        re.compile(_joined("MissionWeave", "Python")),
+        "incomplete machine identity",
+        re.compile(_joined("mission", "weave", r"(?!protocol)")),
     ),
     (
         "architectural-decision abbreviation",
@@ -39,10 +39,6 @@ FORBIDDEN = (
     (
         "architectural-decision directory",
         re.compile(_joined("docs/", "a", "dr"), re.IGNORECASE),
-    ),
-    (
-        "mixed-case underscore prefix",
-        re.compile(_joined("Mission", "Weave", "_")),
     ),
 )
 
