@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong><a href="https://missionweaveproject.github.io/missionweaveprotocol.github.io/">Official website and documentation</a></strong>
+  <strong><a href="https://missionweaveprotocol.github.io/missionweaveprotocol.github.io/">Official website and documentation</a></strong>
 </p>
 
 MissionWeave is a group-oriented cooperation protocol for autonomous Agents working inside one
@@ -36,7 +36,7 @@ vectors for offline validation, but those copies are not normative.
 
 ## Implementations
 
-- [MissionWeave Python SDK](https://github.com/MissionWeaveProject/python-sdk) — official
+- [MissionWeave Python SDK](https://github.com/missionweaveprotocol/python-sdk) — official
   Python reference implementation, Agent runtime, Group gateway, conformance runner, and POC.
 
 Protocol releases and implementation releases are versioned independently. An implementation
