@@ -1,26 +1,26 @@
-# MissionWeave Protocol 0.1
+# MissionWeaveProtocol 0.1
 
 Status: Draft Standard, version `0.1.0`.
 
-This document defines version 0.1 of MissionWeave Protocol. The key words **MUST**, **MUST NOT**,
+This document defines version 0.1 of MissionWeaveProtocol. The key words **MUST**, **MUST NOT**,
 **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**,
 **NOT RECOMMENDED**, **MAY**, and **OPTIONAL** in this document are to be interpreted as described
 by BCP 14 when, and only when, they appear in all capitals as shown here.
 
 ## 1. Purpose and scope
 
-MissionWeave is a group-oriented cooperation protocol for autonomous Agents operating inside one
-trusted Organization. It lets an Agent participate in many Mission Groups concurrently,
-exchange durable Messages with peers, accept explicit WorkItems into per-Group queues,
-schedule those WorkItems across Groups, publish verifiable Artifacts, and obtain human
+MissionWeaveProtocol is a group-oriented cooperation protocol for autonomous Agents operating
+inside one trusted Organization. It lets an Agent participate in many Mission Groups
+concurrently, exchange durable Messages with peers, accept explicit WorkItems into per-Group
+queues, schedule those WorkItems across Groups, publish verifiable Artifacts, and obtain human
 approval of completed Missions.
 
-MissionWeave is not Agent-to-Agent RPC. Agents are peers in Conversation and MAY initiate Messages
-or WorkItem proposals at any time. Structured authority is nevertheless explicit: a Message
-never authorizes a side effect, and organization infrastructure validates all Commands that
-change Mission state.
+MissionWeaveProtocol is not Agent-to-Agent RPC. Agents are peers in Conversation and MAY
+initiate Messages or WorkItem proposals at any time. Structured authority is nevertheless
+explicit: a Message never authorizes a side effect, and organization infrastructure validates
+all Commands that change Mission state.
 
-MissionWeave 0.1 standardizes:
+MissionWeaveProtocol 0.1 standardizes:
 
 * Agent identity, Agent Cards, Presence Records, and runtime fencing;
 * one temporary Group and one monotonic Event history per Mission;
@@ -33,10 +33,10 @@ MissionWeave 0.1 standardizes:
 * canonical JSON over an authenticated WebSocket-over-TLS binding; and
 * governed Extension Profiles.
 
-MissionWeave 0.1 deliberately does not define cross-organization federation, physical peer-to-peer
-routing, Group end-to-end encryption, distributed consensus, model prompts, private model
-reasoning, a knowledge-base API, an Artifact object-store API, or the implementation of the
-Organization's policy and authorization services.
+MissionWeaveProtocol 0.1 deliberately does not define cross-organization federation, physical
+peer-to-peer routing, Group end-to-end encryption, distributed consensus, model prompts,
+private model reasoning, a knowledge-base API, an Artifact object-store API, or the
+implementation of the Organization's policy and authorization services.
 
 ## 2. Normative references and data conventions
 
@@ -82,9 +82,9 @@ rules refine that vocabulary:
   semantic manager and does not decide what Agents should say or how they should reason.
 
 The Group Authority is one logical authority per Group. An implementation MAY replicate it
-internally, but consensus, leader election, and replica topology MUST NOT be exposed as MissionWeave
-semantics. This choice provides deterministic exclusive ownership without requiring Agents
-to resolve split-brain execution socially.
+internally, but consensus, leader election, and replica topology MUST NOT be exposed as
+MissionWeaveProtocol semantics. This choice provides deterministic exclusive ownership
+without requiring Agents to resolve split-brain execution socially.
 
 ## 4. Core invariants
 
@@ -105,8 +105,8 @@ A conforming implementation MUST preserve all of the following invariants:
    MUST NOT complete the WorkItem.
 6. **Append-only history.** Accepted Events and committed Messages are immutable. Correction,
    retraction, redaction, revocation, and remediation are new Events.
-7. **Per-Group order only.** Every Group has one monotonic Event sequence. MissionWeave defines no
-   global order or atomic transaction across Groups.
+7. **Per-Group order only.** Every Group has one monotonic Event sequence.
+   MissionWeaveProtocol defines no global order or atomic transaction across Groups.
 8. **At-least-once delivery.** Events MAY be delivered more than once. Stable identifiers and
    idempotent processing MUST make each accepted state transition observable once.
 9. **Mission isolation.** Mission content, credentials, intermediate state, and Agent memory
@@ -125,7 +125,7 @@ A conforming implementation MUST preserve all of the following invariants:
 
 ## 5. System architecture
 
-A MissionWeave deployment contains at least:
+A MissionWeaveProtocol deployment contains at least:
 
 * an Organization-controlled Agent Registry;
 * a Group Authority and durable Group Event store;
@@ -318,10 +318,10 @@ dedicated Conversation. An implementation MAY create a review Conversation and l
 restricted Conversations for sensitive material. Restricted Conversations remain within the
 Mission's audit boundary and MUST be inspectable by the Coordinator and MissionOwner.
 
-A committed Message contains completed content only. MissionWeave 0.1 does not define partial token
-or `message.delta` streaming. Message content MAY include text and references to Artifacts or
-structured data. Large binary data MUST NOT be embedded; it is transferred as an Artifact
-reference.
+A committed Message contains completed content only. MissionWeaveProtocol 0.1 does not define
+partial token or `message.delta` streaming. Message content MAY include text and references to
+Artifacts or structured data. Large binary data MUST NOT be embedded; it is transferred as an
+Artifact reference.
 
 Every Message object has `authority: false`. A Message such as "deploy immediately" is only
 conversation. To act, an authorized actor must create or authorize a WorkItem through a
@@ -528,20 +528,21 @@ actions without a currently valid lease and capability token. It MUST reconcile 
 before submission or further side effects.
 
 Each buffered Command MUST carry the critical
-`urn:missionweave:extension:bounded-offline-execution` binding. The binding records the Agent, Group,
-WorkItem, original Session Epoch, Ownership Epoch, historical Execution Lease ID, disconnect
-time, buffer time, grace deadline, historical lease expiry, and the six-dimensional resource
-usage delta. On reconnect the Worker MUST preserve that binding but rebase and re-sign the
-Command with an `issuedAt`, Session Epoch, and Membership Epoch from the current authenticated
-session. The Group Authority MUST reject progress buffered outside the historical lease/grace
-window, after lease closure, for a changed owner, or outside the bound WorkItem Conversation.
+`urn:missionweaveprotocol:extension:bounded-offline-execution` binding. The binding records the
+Agent, Group, WorkItem, original Session Epoch, Ownership Epoch, historical Execution Lease ID,
+disconnect time, buffer time, grace deadline, historical lease expiry, and the six-dimensional
+resource usage delta. On reconnect the Worker MUST preserve that binding but rebase and re-sign
+the Command with an `issuedAt`, Session Epoch, and Membership Epoch from the current
+authenticated session. The Group Authority MUST reject progress buffered outside the historical
+lease/grace window, after lease closure, for a changed owner, or outside the bound WorkItem
+Conversation.
 
 Reconciliation and its resource charge are one authoritative transaction. For every nonzero
 offline delta, the Group Authority MUST append an
-`ext.missionweave.core.resource_usage_recorded` Event that identifies both the historical execution
-session and the reconciliation session, updates the WorkItem and complete budget ancestry, and
-then applies the Message or checkpoint. Budget overflow MUST reject both the charge and the
-progress Command without a partial Event or state change.
+`ext.missionweaveprotocol.core.resource_usage_recorded` Event that identifies both the
+historical execution session and the reconciliation session, updates the WorkItem and complete
+budget ancestry, and then applies the Message or checkpoint. Budget overflow MUST reject both
+the charge and the progress Command without a partial Event or state change.
 
 ## 12. Authorization, budgets, and side effects
 
@@ -572,13 +573,13 @@ and the Authorization Service enforces hard limits. Budget exhaustion pauses aff
 and requires explicit escalation; Agents MUST NOT silently exceed a limit.
 
 The Group Authority MUST persist an aggregate six-dimensional budget ledger. A signed
-`ext.missionweave.core.resource_usage_record` Command records a nonzero delta against one WorkItem,
-Ownership Epoch, and Execution Lease ID; the corresponding
-`ext.missionweave.core.resource_usage_recorded` Event carries the delta, cumulative usage, and remaining
-budget. Consumption MUST update the WorkItem and its complete WorkItem/Mission ancestry in one
-atomic transition. A one-dimension overflow MUST reject the whole transition as
-`BUDGET_EXCEEDED`. Capability-token budgets MUST be capped by both the Work Contract and the
-authoritative remaining budget.
+`ext.missionweaveprotocol.core.resource_usage_record` Command records a nonzero delta against
+one WorkItem, Ownership Epoch, and Execution Lease ID; the corresponding
+`ext.missionweaveprotocol.core.resource_usage_recorded` Event carries the delta, cumulative
+usage, and remaining budget. Consumption MUST update the WorkItem and its complete
+WorkItem/Mission ancestry in one atomic transition. A one-dimension overflow MUST reject the
+whole transition as `BUDGET_EXCEEDED`. Capability-token budgets MUST be capped by both the Work
+Contract and the authoritative remaining budget.
 
 Cancellation or emergency termination MUST revoke relevant leases and capability tokens,
 stop new assignments, and initiate contract-defined cleanup or compensation WorkItems where
@@ -689,11 +690,11 @@ work.fail                      work.cancel
 artifact.publish               approval.grant_execution
 ```
 
-The reference core additionally defines Organization-owned `ext.missionweave.*` Commands for Agent Card
-registration, Session activation, dependency insertion, Execution Lease renewal, authoritative
-resource-usage recording, and Group archival. A future Extension Profile may standardize
-convenience Commands such as explicit offer decline, clarification, or Mission pause, but those
-names are not v0.1 core transitions.
+The reference core additionally defines Organization-owned `ext.missionweaveprotocol.*`
+Commands for Agent Card registration, Session activation, dependency insertion, Execution
+Lease renewal, authoritative resource-usage recording, and Group archival. A future Extension
+Profile may standardize convenience Commands such as explicit offer decline, clarification,
+or Mission pause, but those names are not v0.1 core transitions.
 
 ### 15.2 Events and Group order
 
@@ -731,9 +732,10 @@ group.snapshot.created          group.archived
 
 `work.contract.revised` and `work.progressed` are core WorkItem facts emitted by the reference
 Organization-owned dependency-insertion and Execution-Lease-renewal Commands. Agent Card and
-Session activation facts retain their `ext.missionweave.*` Event kinds. `group.snapshot.created` and
-`group.archived` are core archival facts emitted atomically by the Organization-owned
-`ext.missionweave.core.group_archive` Command after its signed snapshot and policy-log linkage validate.
+Session activation facts retain their `ext.missionweaveprotocol.*` Event kinds.
+`group.snapshot.created` and `group.archived` are core archival facts emitted atomically by the
+Organization-owned `ext.missionweaveprotocol.core.group_archive` Command after its signed
+snapshot and policy-log linkage validate.
 
 Automatic Events MAY be caused by an accepted Command, prior Event, timer, or policy decision.
 Events from different Groups have no defined order.
@@ -748,9 +750,9 @@ privileged internal actor.
 
 ## 16. Delivery, replay, and acknowledgement
 
-MissionWeave promises at-least-once Event delivery. A recipient MUST deduplicate by Event ID and MUST
-process each Group in sequence order. It MAY buffer an out-of-order Event, but MUST NOT advance
-its durable Cursor over a gap.
+MissionWeaveProtocol promises at-least-once Event delivery. A recipient MUST deduplicate by
+Event ID and MUST process each Group in sequence order. It MAY buffer an out-of-order Event,
+but MUST NOT advance its durable Cursor over a gap.
 
 A Cursor is the highest contiguous Group sequence durably processed by an Agent. An `ACK`
 frame reports one or more Cursors. Acknowledgement permits delivery cleanup but MUST NOT delete
@@ -769,10 +771,10 @@ exactly-once external side effects.
 
 ### 17.1 Connection
 
-MissionWeave 0.1 servers MUST provide WebSocket over TLS 1.3 (`wss`). A single authenticated
+MissionWeaveProtocol 0.1 servers MUST provide WebSocket over TLS 1.3 (`wss`). A single authenticated
 connection multiplexes all Groups used by one Agent. Each WebSocket message MUST contain
 exactly one UTF-8 JSON text frame conforming to `schemas/websocket-frame.schema.json`.
-Binary WebSocket messages MUST NOT carry MissionWeave protocol objects or Artifact content in v0.1.
+Binary WebSocket messages MUST NOT carry MissionWeaveProtocol objects or Artifact content in v0.1.
 
 The core frame types are `HELLO`, `SUBSCRIBE`, `COMMAND`, `EVENT`, `ACK`, `PING`, and `ERROR`.
 Partial Message streaming frames are not defined.
@@ -921,7 +923,7 @@ The 21 normative schemas are:
 
 ## 22. Conformance and required proof of concept
 
-An implementation conforms to MissionWeave 0.1 only if it:
+An implementation conforms to MissionWeaveProtocol 0.1 only if it:
 
 * validates every durable object against the normative schemas;
 * passes valid and invalid vectors in `conformance/vectors/`;
@@ -930,11 +932,12 @@ An implementation conforms to MissionWeave 0.1 only if it:
 * demonstrates authorization and the Message/non-authority invariant; and
 * passes failure-recovery tests without accepting stale or duplicate side effects.
 
-Passing `missionweave-conformance` or the repository's schema vectors demonstrates schema-and-vector
-conformance only. It is necessary but not sufficient evidence of full protocol conformance. A
-reference implementation MUST claim full MissionWeave 0.1 conformance only when automated positive and
-negative evidence covers every core Command and Event kind above and every transition row in
-Sections 7.1 and 10.2; otherwise it MUST report the narrower verified subset explicitly.
+Passing `missionweaveprotocol-conformance` or the repository's schema vectors demonstrates
+schema-and-vector conformance only. It is necessary but not sufficient evidence of full protocol
+conformance. A reference implementation MUST claim full MissionWeaveProtocol 0.1 conformance
+only when automated positive and negative evidence covers every core Command and Event kind
+above and every transition row in Sections 7.1 and 10.2; otherwise it MUST report the narrower
+verified subset explicitly.
 
 The v0.1 reference proof of concept MUST use Python and run two concurrent
 software-development Missions with at least one shared Worker. At least one Mission MUST

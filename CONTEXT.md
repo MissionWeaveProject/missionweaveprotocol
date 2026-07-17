@@ -1,7 +1,14 @@
-# MissionWeave Protocol
+# MissionWeaveProtocol
 
 This context defines the language for organization-internal Missions completed by
 coordinator-led groups of autonomous Agents.
+
+## Protocol identity
+
+**MissionWeaveProtocol**:
+The canonical organization-internal cooperation protocol for autonomous Agents working in
+Mission Groups.
+_Avoid_: Abbreviated, spaced, or alternate product names
 
 ## Organization and identity
 
