@@ -53,11 +53,29 @@ Implementations MUST follow these external specifications where referenced:
 * JSON Schema Draft 2020-12; and
 * RFC 9457 principles for structured protocol errors, where applicable.
 
-All protocol objects MUST be valid JSON. Durable protocol objects MUST conform to the JSON
-Schemas in `schemas/`. Every timestamp MUST be a valid RFC 3339 `date-time`. An implementation
-MUST preserve serialized timestamp text and MUST NOT rewrite it before hashing or signature
-verification. Section 6.4 additionally requires the protected signed time and
-`signature.createdAt` to use the uppercase `Z` suffix and to be byte-for-byte identical.
+All protocol objects MUST be valid JSON. Durable protocol objects MUST conform to the JSON Schemas
+in `schemas/`, and every protocol timestamp MUST be an RFC 3339 `date-time`.
+MissionWeaveProtocol 0.1 uses a deterministic timestamp profile for the Signed Document
+Verification Profile. Every timestamp in a Signed Document covered by Section 6.4, and every
+Registry or trusted-acceptance timestamp used to verify that document, MUST satisfy the following
+additional rules:
+
+* the calendar year is in the inclusive range `0001` through `9999` and the Gregorian date is
+  valid;
+* the second is in the inclusive range `00` through `59`; leap-second spellings are not supported
+  in v0.1;
+* an optional fractional second contains one or more ASCII digits, all of which participate in
+  instant comparison without truncation or rounding; and
+* the RFC 3339 unknown-local-offset spelling `-00:00` is not permitted.
+
+The case-insensitive `T` separator and `Z` designator and the full RFC 3339 numerical-offset range
+remain valid unless a later rule requires a narrower spelling. Generic JSON Schema `date-time`
+validation is necessary but not sufficient to establish this timestamp profile. An implementation
+MUST preserve serialized timestamp text independently from its parsed instant and MUST NOT rewrite
+it before hashing or signature verification. An absent fractional second is zero, and trailing
+zero digits do not change the represented instant. Section 6.4 additionally requires the protected
+signed time and `signature.createdAt` to use the uppercase `Z` suffix and to be byte-for-byte
+identical.
 
 JCS input MUST follow the RFC 8785 and I-JSON data model. JSON numbers MUST be interpreted as
 finite IEEE 754 binary64 values and serialized with the RFC 8785 ECMAScript shortest-round-trip
@@ -257,6 +275,17 @@ MUST bind the envelope back to the protected content. The `signature.algorithm` 
 using the uppercase `Z` suffix and MUST be byte-for-byte identical. A verifier MUST NOT repair,
 normalize, or substitute either value before comparing or verifying the Signed Document.
 
+MissionWeaveProtocol 0.1 uses pure Ed25519 as defined by RFC 8032, not Ed25519ctx or Ed25519ph.
+Let `L = 2^252 + 27742317777372353535851937790883648493` be the prime order of the Ed25519 base
+point `B`, and let `I` be the Edwards25519 identity point.
+
+After decoding a 64-byte Ed25519 signature as `Renc || Senc`, a verifier MUST canonically decode
+`Renc` as an Edwards25519 point and require `[L]R` to equal the identity. The identity point is
+permitted for `R`. The verifier MUST interpret `Senc` as an unsigned little-endian integer, require
+`0 <= S < L`, and MUST NOT reduce an out-of-range value modulo `L`. Noncanonical, off-curve,
+non-identity small-order, or mixed-order `R` encodings and out-of-range `S` values MUST fail
+stage 3.
+
 A key ID MUST NOT be reused. The Agent Registry MUST provide signing-key bindings for every
 Principal type that can be an expected signer; only Agent Principals require Agent Cards. The
 binding of one key ID to exactly one Principal, one algorithm, and one public key is immutable.
@@ -264,6 +293,20 @@ Within one Organization, the same public key MUST NOT be registered under anothe
 ID, and the same Principal, algorithm, and public-key tuple MUST NOT have a key-ID alias. Repeated
 declarations of an identical binding across Agent Card or Registry versions are the same logical
 binding, not reuse or aliasing.
+
+Before accepting an Ed25519 binding, the Registry MUST strictly decode the 32-byte public key as
+the compressed Edwards25519 point encoding defined by RFC 8032. The encoding MUST be canonical,
+MUST decode to a point on the curve, MUST NOT be the identity point, and MUST be in the prime-order
+subgroup: for subgroup order `L`, `[L]A` MUST equal the identity. A length check, small-order
+blacklist, or successful import into a general-purpose cryptography backend is not sufficient.
+Noncanonical encodings, negative-zero encodings, small-order points, and mixed-order points MUST be
+rejected before the immutable binding and Organization-wide uniqueness checks are applied.
+
+After the stage-3 signature encoding checks and stage-4 public-key checks succeed, stage 6 MUST
+require the pure-Ed25519 equation `[S]B = R + [k]A`, where `k` is SHA-512 over
+`Renc || Aenc || M`, interpreted little-endian and reduced modulo `L`, and `M` is the exact signing
+byte sequence produced at stage 5. Because both `A` and `R` are in the prime-order subgroup, a
+provider that evaluates the equivalent RFC 8032 cofactored equation has the same acceptance result.
 
 The Registry MUST enforce these invariants across the Organization before accepting any binding and
 MUST retain sufficient indexes and history to establish both key-ID uniqueness and the absence of
@@ -285,10 +328,10 @@ material MUST fail.
 
 For protected signed time `t`, a key is valid only when `validFrom <= t`, `validUntil` is absent or
 `t < validUntil`, and `revokedAt` is absent or `t < revokedAt`. A key whose `revokedAt` is equal to
-or earlier than `t` MUST be rejected. Registry validity timestamps MUST be strictly parsed as RFC
-3339 instants and compared as instants, not lexically; the byte-equality rule for the two protected
-document timestamps does not apply to Registry interval fields. Durable signature verification
-MUST evaluate this interval at the protected signed time.
+or earlier than `t` MUST be rejected. Registry validity timestamps MUST conform to the
+MissionWeaveProtocol timestamp profile and be compared as instants, not lexically; the
+byte-equality rule for the two protected document timestamps does not apply to Registry interval
+fields. Durable signature verification MUST evaluate this interval at the protected signed time.
 
 Verification MUST stop at the first failing stage and MUST NOT perform authorization, append an
 Event, or execute a transition before every stage succeeds:
@@ -299,14 +342,20 @@ Event, or execute a transition before every stage succeeds:
    signature envelope and supported algorithm;
 3. apply this Verification Profile, including protected-time UTC-`Z` form validation, exact
    `createdAt` equality without transformation, expected-signer rule selection, canonical unpadded
-   base64url decoding of `signature.value`, and a 64-byte Ed25519 signature;
+   base64url decoding of `signature.value`, and strict `Renc` and `Senc` validation of a 64-byte
+   Ed25519 signature;
 4. resolve the pinned key under the expected signer and validate its immutable identity binding,
    Organization-wide no-reuse and no-alias invariants, and validity interval at the protected
-   signed time, including canonical unpadded base64url decoding of a 32-byte Ed25519 public key;
+   signed time, including canonical unpadded base64url decoding and strict point validation of a
+   32-byte Ed25519 public key;
 5. omit exactly the top-level `signature` member, reject values outside the RFC 8785 and I-JSON data
    model defined in Section 2, and produce JCS signing bytes from the received values without
    timestamp or number transformation beyond the required RFC 8785 binary64 serialization; and
 6. verify the Ed25519 signature over those bytes.
+
+Failure of the base timestamp profile for a Schema-declared document timestamp is a stage-2
+failure. Failure of the additional protected-time UTC-`Z` or byte-equality rule is stage 3. A
+malformed Registry validity timestamp is a stage-4 failure.
 
 These numbers define normative semantic stages and error classification, not required internal
 function boundaries. An implementation MAY detect a later-stage condition while parsing, but MUST
@@ -367,10 +416,12 @@ Invalid JSON, duplicate members, or a value that cannot enter the JCS data model
 `SCHEMA_VALIDATION_FAILED`. Failure in cryptographic stage 3, 4, or 6, or in first-admission key
 validity, First-Admission Record, or Command-freshness checks, is `AUTH_INVALID_SIGNATURE`;
 examples include a time-binding mismatch, schema-valid base64url with nonzero unused pad bits,
-unknown or wrongly bound key, invalid key interval, malformed decoded key or signature length, or
-cryptographic mismatch. A wire response MUST NOT reveal which key-resolution, admission, or
-cryptographic check failed, though the Organization MAY retain the specific reason in its protected
-audit and, where Group-scoped, the Policy Log.
+unknown or wrongly bound key, invalid key interval, noncanonical or non-prime-order public key,
+malformed decoded key or signature length, or cryptographic mismatch. A wire response MUST NOT
+reveal which key-resolution, admission, or cryptographic check failed. The Organization MUST retain
+the first failing semantic stage and its specific diagnostic reason in a protected, access-controlled
+audit record according to applicable retention policy. A Group-scoped failure MUST be referenceable
+from the Policy Log by authorized auditors without exposing that diagnostic to the untrusted caller.
 
 A future protocol revision may protect signature metadata by omitting only `signature.value`
 instead of the complete top-level `signature` member. That changes canonical signing bytes and is
@@ -1124,15 +1175,29 @@ An implementation conforms to MissionWeaveProtocol 0.1 only if it:
 
 * validates every durable object against the normative schemas;
 * passes valid and invalid vectors in `conformance/vectors/`;
+* passes every evaluation in `cryptography/manifest.json`, covering all nine schema profiles in
+  the Signed Document Verification Profile and their canonical signing bytes, hashes, key
+  bindings, and signatures;
 * enforces all Mission and WorkItem transitions;
 * demonstrates replay, deduplication, optimistic concurrency, and fencing;
 * demonstrates authorization and the Message/non-authority invariant; and
 * passes failure-recovery tests without accepting stale or duplicate side effects.
 
+For the cryptography bundle, `manifest.fixtureSchemas` identifies the normative Registry-fixture
+and test-only signing-key-fixture Schemas. A runner MUST validate each fixture against the named
+Schema before applying the declared semantic stages. To verify `artifactDigest`, a runner MUST
+remove exactly the top-level `artifactDigest` member, serialize the remaining manifest with RFC
+8785 JCS, hash those bytes with SHA-256, and compare `sha256:` followed by the 64 lower-case
+hexadecimal digest digits. Each declared artifact hash applies to the exact file bytes.
+
 Passing `missionweaveprotocol-conformance` or the repository's schema vectors demonstrates
 schema-and-vector conformance only. It is necessary but not sufficient evidence of full protocol
-conformance. A reference implementation MUST claim full MissionWeaveProtocol 0.1 conformance
-only when automated positive and negative evidence covers every core Command and Event kind
+conformance. Passing `cryptography/manifest.json` demonstrates only the six cryptographic
+verification stages in Section 6.4. It does not demonstrate First-Admission Record or
+historical-trust validation, Command freshness and clock-skew enforcement, or signer authorization
+under applicable role and policy; an implementation MUST prove those requirements separately.
+A reference implementation MUST claim full MissionWeaveProtocol 0.1 conformance only when
+automated positive and negative evidence covers every core Command and Event kind
 above and every transition row in Sections 7.1 and 10.2; otherwise it MUST report the narrower
 verified subset explicitly.
 

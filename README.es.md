@@ -33,6 +33,8 @@ Este repositorio es la fuente canónica del paquete versionado de artefactos del
 - [glosario del protocolo](CONTEXT.md);
 - [21 JSON Schema](schemas/README.md);
 - [vectores de conformidad válidos y no válidos](conformance/manifest.json);
+- [paquete criptográfico de 22 casos para los nueve perfiles de esquema del Signed Document
+  Verification Profile](cryptography/README.md);
 - [recursos de marca](assets/brand/).
 
 Las implementaciones deben fijar una versión publicada del protocolo o un commit. Pueden incluir
@@ -56,6 +58,13 @@ se espera que sean no válidos. La conformidad estructural con los JSON Schema e
 no suficiente; las implementaciones también deben aplicar las reglas de máquina de estados,
 ordenación, epoch, lease, budget, jerarquía, firma y autorización de la especificación.
 
+El manifest criptográfico independiente contiene 22 casos que cubren los nueve perfiles de esquema
+del Signed Document Verification Profile. Superarlo demuestra la conformidad con las evaluaciones
+declaradas a lo largo de las seis etapas de verificación criptográfica de la sección 6.4; no
+demuestra la validación del First-Admission Record ni de la confianza histórica, la vigencia
+temporal de los Command ni el control de desfase de reloj, ni la autorización del firmante según
+su rol y las políticas aplicables.
+
 La implementación en Python puede ejecutar directamente los vectores de este repositorio:
 
 ```bash
@@ -65,13 +74,15 @@ uv run --project ../python-sdk missionweaveprotocol-conformance --root .
 También se puede validar desde este repositorio:
 
 ```bash
-python -m pip install -r requirements-validation.txt
+python -m pip install --require-hashes --no-deps --only-binary=:all: \
+  -r requirements-cryptography.lock
 python scripts/check_repository_policy.py
 python scripts/validate_protocol.py
+python scripts/validate_crypto_vectors.py
 ```
 
 ## Licencia
 
-La especificación, los JSON Schema, los vectores de conformidad y los recursos de marca se
-distribuyen bajo la licencia [Apache-2.0](LICENSE). La licencia no concede derechos sobre marcas
-comerciales.
+La especificación, los JSON Schema, los vectores de conformidad, los vectores criptográficos y los
+recursos de marca se distribuyen bajo la licencia [Apache-2.0](LICENSE). La licencia no concede
+derechos sobre marcas comerciales.
