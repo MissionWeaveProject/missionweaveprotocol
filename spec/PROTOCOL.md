@@ -44,7 +44,9 @@ Implementations MUST follow these external specifications where referenced:
 
 * RFC 2119 and RFC 8174 (BCP 14), normative language;
 * RFC 3339, timestamps;
+* RFC 4648 Sections 3.2, 3.5, and 5, canonical unpadded base64url;
 * RFC 6455, WebSocket;
+* RFC 7493, Internet JSON (I-JSON);
 * RFC 8446, TLS 1.3;
 * RFC 8785, JSON Canonicalization Scheme (JCS);
 * RFC 8032, Ed25519;
@@ -52,10 +54,23 @@ Implementations MUST follow these external specifications where referenced:
 * RFC 9457 principles for structured protocol errors, where applicable.
 
 All protocol objects MUST be valid JSON. Durable protocol objects MUST conform to the JSON
-Schemas in `schemas/`. A timestamp MUST be an RFC 3339 `date-time` normalized to UTC when it
-is hashed or signed. A content hash in v0.1 MUST use lower-case hexadecimal SHA-256 and the
-form `sha256:<64 hex digits>`. Integers used for sequences, revisions, epochs, and budgets
-MUST be non-negative safe JSON integers; Group Event sequences start at 1.
+Schemas in `schemas/`. Every timestamp MUST be a valid RFC 3339 `date-time`. An implementation
+MUST preserve serialized timestamp text and MUST NOT rewrite it before hashing or signature
+verification. Section 6.4 additionally requires the protected signed time and
+`signature.createdAt` to use the uppercase `Z` suffix and to be byte-for-byte identical.
+
+JCS input MUST follow the RFC 8785 and I-JSON data model. JSON numbers MUST be interpreted as
+finite IEEE 754 binary64 values and serialized with the RFC 8785 ECMAScript shortest-round-trip
+form. An implementation using arbitrary-precision numbers MUST apply the same correctly rounded
+binary64 conversion and MUST NOT preserve host-specific extra precision in signing bytes. A value
+outside the finite binary64 domain or a string containing an unpaired Unicode surrogate MUST be
+rejected as a JCS data-model failure before canonical bytes are emitted.
+
+A base64url value MUST use the RFC 4648 URL-safe alphabet, omit `=` padding, and use zero unused
+pad bits. A decoder MUST reject a noncanonical spelling even when it decodes to the expected bytes.
+A content hash in v0.1 MUST use lower-case hexadecimal SHA-256 and the form
+`sha256:<64 hex digits>`. Integers used for sequences, revisions, epochs, and budgets MUST be
+non-negative safe JSON integers; Group Event sequences start at 1.
 
 An identifier MUST be globally unique within the identifier's kind and MUST be serialized as
 an absolute URI. UUID identifiers SHOULD use lower-case `urn:uuid:` form. Implementations
@@ -205,17 +220,162 @@ Records rely on the authenticated session. Long-lived shared API keys are NOT RE
 An implementation MAY add mTLS or workload-identity authentication, provided it preserves
 the Agent ID and fencing semantics.
 
-### 6.4 Signature input
+### 6.4 Signed Document Verification Profile
 
-Unless an Extension Profile specifies an additional signature, a signature covers the JCS
-canonical form of the complete object with its top-level `signature` member omitted. The
-Command signature therefore covers at least its Action ID, actor, applicable Session,
-Membership, and Coordinator Epochs, Group ID when present, kind, payload, correlation ID,
-timestamp, and extensions. An Event signature is made by the accepting authority and covers its
-Event ID, Group sequence when present, cause, actor, payload, and time.
+A **Signed Document** is a durable protocol object whose schema requires a top-level
+`signature`. The v0.1 **Signed Document Verification Profile** binds each such schema to one
+protected signed-time field and one expected signer:
 
-Signature verification MUST use the pinned key ID and key validity interval. Implementations
-MUST reject altered signed content, an unknown or revoked key, or an invalid algorithm.
+| Signed Document | Protected signed time | Expected signer |
+| --- | --- | --- |
+| Agent Card | `issuedAt` | Organization service Principal authorized to issue Agent Cards for `organizationId` |
+| Approval | `occurredAt` | `approver` |
+| Artifact manifest | `createdAt` | Agent identified by `producer.agentId` |
+| Command | `issuedAt` | `actor` |
+| Context Package | `generatedAt` | `generatedBy` |
+| Event | `occurredAt` | `acceptedBy` |
+| Evidence | `createdAt` | `generatedBy` |
+| Extension Profile | `approvedAt` | `approvedBy` |
+| Group Snapshot | `createdAt` | `createdBy` |
+
+For every row except Agent Card, the expected signer is the exact Principal identified by the
+listed field. For an Agent Card, the signing-key record MUST identify an Organization service
+Principal; its authorization to issue Agent Cards for `organizationId` is checked after
+cryptographic verification.
+
+Unless an Extension Profile specifies an additional signature, a v0.1 signature covers the JCS
+canonical form of the complete object with its top-level `signature` member omitted. Only that
+top-level member is omitted; nested members named `signature` remain protected. The Command
+signature therefore covers at least its Action ID, actor, applicable Session, Membership, and
+Coordinator Epochs, Group ID when present, kind, payload, correlation ID, protected signed time,
+and extensions. An Event signature is made by the accepting authority and covers its Event ID,
+Group sequence when present, cause, actor, payload, and protected signed time.
+
+Because the whole top-level signature envelope is omitted from the v0.1 signing input, a verifier
+MUST bind the envelope back to the protected content. The `signature.algorithm` MUST be
+`Ed25519`. The protected signed time and `signature.createdAt` MUST both be RFC 3339 UTC values
+using the uppercase `Z` suffix and MUST be byte-for-byte identical. A verifier MUST NOT repair,
+normalize, or substitute either value before comparing or verifying the Signed Document.
+
+A key ID MUST NOT be reused. The Agent Registry MUST provide signing-key bindings for every
+Principal type that can be an expected signer; only Agent Principals require Agent Cards. The
+binding of one key ID to exactly one Principal, one algorithm, and one public key is immutable.
+Within one Organization, the same public key MUST NOT be registered under another Principal or key
+ID, and the same Principal, algorithm, and public-key tuple MUST NOT have a key-ID alias. Repeated
+declarations of an identical binding across Agent Card or Registry versions are the same logical
+binding, not reuse or aliasing.
+
+The Registry MUST enforce these invariants across the Organization before accepting any binding and
+MUST retain sufficient indexes and history to establish both key-ID uniqueness and the absence of
+public-key or tuple aliases. Key resolution MUST fail closed when the Registry cannot establish
+those invariants for the resolved binding.
+
+Key-validity status is historical state, not part of the immutable identity binding. The Registry
+MUST preserve the original `validFrom` and every change to `validUntil` or `revokedAt` through
+append-only or explicitly versioned validity-status records. The first registered `validFrom` is
+immutable. A `validUntil` or `revokedAt` boundary MAY be added or moved earlier, but MUST NOT be
+cleared or moved later. Its effective value is the earliest non-absent value in Registry history.
+Extending validity requires new key material under a new key ID. The Registry MUST NOT rewrite or
+discard an earlier status record on which historical verification may depend.
+
+The signer rule from the table and `signature.keyId` together select the Registry record. Its bound
+Principal MUST equal the exact Principal named by the document or be an Organization service
+Principal for an Agent Card. Resolving the same key ID under another Principal or to different key
+material MUST fail.
+
+For protected signed time `t`, a key is valid only when `validFrom <= t`, `validUntil` is absent or
+`t < validUntil`, and `revokedAt` is absent or `t < revokedAt`. A key whose `revokedAt` is equal to
+or earlier than `t` MUST be rejected. Registry validity timestamps MUST be strictly parsed as RFC
+3339 instants and compared as instants, not lexically; the byte-equality rule for the two protected
+document timestamps does not apply to Registry interval fields. Durable signature verification
+MUST evaluate this interval at the protected signed time.
+
+Verification MUST stop at the first failing stage and MUST NOT perform authorization, append an
+Event, or execute a transition before every stage succeeds:
+
+1. strictly parse exactly one UTF-8 JSON value and reject invalid UTF-8, a byte-order mark, trailing
+   data, and duplicate decoded object member names;
+2. validate the complete Signed Document against its normative schema, including the required
+   signature envelope and supported algorithm;
+3. apply this Verification Profile, including protected-time UTC-`Z` form validation, exact
+   `createdAt` equality without transformation, expected-signer rule selection, canonical unpadded
+   base64url decoding of `signature.value`, and a 64-byte Ed25519 signature;
+4. resolve the pinned key under the expected signer and validate its immutable identity binding,
+   Organization-wide no-reuse and no-alias invariants, and validity interval at the protected
+   signed time, including canonical unpadded base64url decoding of a 32-byte Ed25519 public key;
+5. omit exactly the top-level `signature` member, reject values outside the RFC 8785 and I-JSON data
+   model defined in Section 2, and produce JCS signing bytes from the received values without
+   timestamp or number transformation beyond the required RFC 8785 binary64 serialization; and
+6. verify the Ed25519 signature over those bytes.
+
+These numbers define normative semantic stages and error classification, not required internal
+function boundaries. An implementation MAY detect a later-stage condition while parsing, but MUST
+retain enough lossless structure to evaluate all earlier semantic stages and MUST classify the
+condition at its normative stage. In particular, a syntactically valid JSON number outside the
+finite binary64 domain or a decoded string containing an unpaired surrogate is a stage-5 JCS
+data-model failure, not a stage-1 JSON syntax failure. A conformance vector that asserts one failure
+stage SHOULD isolate that failure so every implementation can report the intended diagnostic
+without ambiguity from another deliberately invalid field.
+
+The **signing hash** is `sha256:<lowercase hex SHA-256 of the exact stage-5 JCS signing bytes>`.
+The six stages above constitute cryptographic verification and MUST NOT require admission state.
+A cryptographically verified result may therefore exist before separate first-admission or
+historical-trust validation by the accepting Organization.
+
+A **First-Admission Record** is authoritative append metadata outside the Signed Document
+Verification Profile in an Organization-controlled Group or Registry acceptance log. It MUST
+record at least the signing hash, the Organization-assigned trusted acceptance time as an RFC 3339
+instant, the resolved key ID, and its bound Principal. The log MUST authenticate the accepting
+service, restrict writes to Organization-authorized services, and preserve append-only audit
+integrity.
+
+Admission or historical-trust validation MUST authenticate the accepting service and verify the
+record's append-only integrity. It MUST recompute the signing hash from the stage-5 bytes and
+require it to equal the record's signing hash. It MUST also require the record's key ID and bound
+Principal to equal the stage-4 resolved binding and MUST validate the trusted acceptance time
+against that same key's validity interval. A record for the same unsigned content under a different
+key or Principal MUST NOT be reused.
+
+For a Signed Event, that Event document MUST NOT serve as its own First-Admission Record or rely on
+the signature being anchored to authenticate the record. A later signed Event MAY publish or
+reference the record, but its signature authenticates the Event's reference to the record, not the
+record or its admission anchor.
+
+On first admission of a Signed Document without such a record, the Organization MUST require the
+signing key to be valid at the trusted acceptance time and then append the First-Admission Record.
+It MUST NOT accept a newly presented document solely because its signer backdated the protected
+time to precede expiry or revocation. A newly presented Command MUST additionally satisfy an
+Organization-defined, bounded freshness and clock-skew window for `issuedAt`.
+
+A later expiry or revocation does not by itself invalidate an anchored historical signature when
+both its protected signed time and trusted acceptance time were within the key's validity interval.
+Historical replay MUST perform the six cryptographic stages and validate the First-Admission Record
+rather than treating the document as a new admission.
+
+Cryptographic verification authenticates the Principal bound to the key; it does not grant that
+Principal protocol authority. Before accepting a state transition, the relevant Organization or
+Group Authority MUST verify the signer's role and authorization using authoritative policy and
+state applicable at the protected signed time and, for first admission, the trusted acceptance
+time. In particular, `acceptedBy` MUST be an authorized Group Authority or Organization Event
+service, an Agent Card issuer MUST be authorized for its Organization, an Extension Profile
+approver and Approval approver MUST satisfy Organization policy, and a Group Snapshot creator MUST
+be an authorized archival service. This authorization check occurs only after all six
+cryptographic stages succeed; failure is `AUTH_FORBIDDEN`.
+
+Invalid JSON, duplicate members, or a value that cannot enter the JCS data model is a
+`PROTOCOL_VIOLATION`. Schema, required-envelope, or unsupported-algorithm failure is
+`SCHEMA_VALIDATION_FAILED`. Failure in cryptographic stage 3, 4, or 6, or in first-admission key
+validity, First-Admission Record, or Command-freshness checks, is `AUTH_INVALID_SIGNATURE`;
+examples include a time-binding mismatch, schema-valid base64url with nonzero unused pad bits,
+unknown or wrongly bound key, invalid key interval, malformed decoded key or signature length, or
+cryptographic mismatch. A wire response MUST NOT reveal which key-resolution, admission, or
+cryptographic check failed, though the Organization MAY retain the specific reason in its protected
+audit and, where Group-scoped, the Policy Log.
+
+A future protocol revision may protect signature metadata by omitting only `signature.value`
+instead of the complete top-level `signature` member. That changes canonical signing bytes and is
+a breaking wire-signature revision. It MUST NOT be introduced, generated, or accepted silently as
+v0.1 behavior.
 
 ## 7. Mission and Group lifecycle
 
@@ -830,8 +990,9 @@ per-Group backpressure. When a limit is reached they SHOULD pause that Group and
 
 Wire JSON need not arrive in canonical member order, but every hash, identifier derived from
 content, or signature MUST use RFC 8785 JCS bytes. Duplicate object member names MUST be
-rejected before schema validation. Numbers not exactly representable by the implementation's
-JCS pipeline MUST be rejected.
+rejected before schema validation. Numbers and strings MUST satisfy the finite-binary64 and I-JSON
+rules in Section 2; conforming implementations MUST produce the same JCS bytes for the same JSON
+value.
 
 Large content is published as an Artifact and referenced by URI and content hash. Unknown
 core properties are rejected by v0.1 schemas. Unknown noncritical Extension Profile data is
@@ -864,7 +1025,7 @@ exposing unauthorized data. Core codes are:
 | --- | --- |
 | `UNSUPPORTED_VERSION` | No compatible protocol version |
 | `AUTH_REQUIRED` | Authentication is absent |
-| `AUTH_INVALID_SIGNATURE` | A required signature failed |
+| `AUTH_INVALID_SIGNATURE` | Signed-document signature, key validity, admission proof, or freshness check failed |
 | `AUTH_STALE_SESSION` | Session Epoch is fenced |
 | `AUTH_STALE_COORDINATOR` | Coordinator Epoch is fenced |
 | `AUTH_FORBIDDEN` | Actor lacks permission or policy eligibility |
@@ -890,9 +1051,14 @@ exposing unauthorized data. Core codes are:
 | `PROTOCOL_VIOLATION` | Peer violated framing or a core invariant |
 | `INTERNAL_ERROR` | Authority failed without accepting the transition |
 
-Retries MUST retain the original Action ID and signed content unless the error explicitly
-requires a revised Command. `ACTION_ID_COLLISION`, invalid signature, and stale fencing errors
-are not retryable without creating or obtaining new authoritative state.
+An unchanged Command retry MUST retain the original Action ID and signed content.
+`AUTH_INVALID_SIGNATURE` MUST NOT be retried unchanged before its cause is corrected. After local
+correction of the signature envelope or authoritative key or admission state, a sender MAY retry
+the original Action ID only while all protected content remains valid. If Command freshness has
+expired, the sender MUST instead create a new Command with a new Action ID, a current `issuedAt`, a
+matching `signature.createdAt`, and a new signature. `ACTION_ID_COLLISION` requires a new Command
+with a new Action ID. A stale fencing error requires the current authoritative epoch and a new
+Command with a new Action ID and signature.
 
 ## 20. Rate, recursion, and runaway controls
 
