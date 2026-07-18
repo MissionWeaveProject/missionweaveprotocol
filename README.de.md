@@ -48,11 +48,31 @@ einbetten, doch diese Kopien sind nicht normativ.
 - [MissionWeaveProtocol Python SDK](https://github.com/missionweaveprotocol/python-sdk)
   — offizielle Python-Referenzimplementierung, Agent-Runtime, Group-Gateway,
   Konformitäts-Runner und POC.
+- [MissionWeaveProtocol Go SDK](https://github.com/missionweaveprotocol/go-sdk)
+  — offizielles Go-Protokoll-SDK mit Protokoll-Bindings sowie Schema- und
+  Vektorkonformität.
+- [MissionWeaveProtocol TypeScript SDK](https://github.com/missionweaveprotocol/typescript-sdk)
+  — offizielles TypeScript-Protokoll-SDK mit Protokoll-Bindings sowie Schema-
+  und Vektorkonformität.
+- [MissionWeaveProtocol Java SDK](https://github.com/missionweaveprotocol/java-sdk)
+  — offizielles Java-Protokoll-SDK mit Protokoll-Bindings sowie Schema- und
+  Vektorkonformität.
+- [MissionWeaveProtocol Rust SDK](https://github.com/missionweaveprotocol/rust-sdk)
+  — offizielles Rust-Protokoll-SDK mit Protokoll-Bindings sowie Schema- und
+  Vektorkonformität.
+- [MissionWeaveProtocol C++ SDK](https://github.com/missionweaveprotocol/cpp-sdk)
+  — offizielles C++-Protokoll-SDK mit Protokoll-Bindings sowie Schema- und
+  Vektorkonformität.
 
 Protokoll- und Implementierungs-Releases werden unabhängig voneinander
 versioniert. Eine Implementierung muss eine ausdrückliche
 Kompatibilitätserklärung veröffentlichen, statt aus gleichen Versionsnummern
 Kompatibilität abzuleiten.
+
+Python ist die vollständige Referenz-Runtime. Die SDKs für Go, TypeScript, Java,
+Rust und C++ konzentrieren sich derzeit auf Protokoll-Bindings sowie Schema- und
+Vektorkonformität; sie beanspruchen keine vollständige verhaltensbezogene
+Runtime-Konformität.
 
 ## Konformität
 

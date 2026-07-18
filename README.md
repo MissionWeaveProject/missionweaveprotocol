@@ -42,10 +42,24 @@ vectors for offline validation, but those copies are not normative.
 
 - [MissionWeaveProtocol Python SDK](https://github.com/missionweaveprotocol/python-sdk) — official
   Python reference implementation, Agent runtime, Group gateway, conformance runner, and POC.
+- [MissionWeaveProtocol Go SDK](https://github.com/missionweaveprotocol/go-sdk) — official Go
+  protocol bindings with schema-and-vector conformance.
+- [MissionWeaveProtocol TypeScript SDK](https://github.com/missionweaveprotocol/typescript-sdk) —
+  official TypeScript protocol bindings with schema-and-vector conformance.
+- [MissionWeaveProtocol Java SDK](https://github.com/missionweaveprotocol/java-sdk) — official Java
+  protocol bindings with schema-and-vector conformance.
+- [MissionWeaveProtocol Rust SDK](https://github.com/missionweaveprotocol/rust-sdk) — official Rust
+  protocol bindings with schema-and-vector conformance.
+- [MissionWeaveProtocol C++ SDK](https://github.com/missionweaveprotocol/cpp-sdk) — official C++
+  protocol bindings with schema-and-vector conformance.
 
 Protocol releases and implementation releases are versioned independently. An implementation
 must publish an explicit compatibility declaration instead of assuming that equal version numbers
 mean compatibility.
+
+Python is the full reference runtime. The Go, TypeScript, Java, Rust, and C++ SDKs currently focus
+on protocol bindings and schema-and-vector conformance; they do not claim full behavioral runtime
+conformance.
 
 ## Conformance
 
