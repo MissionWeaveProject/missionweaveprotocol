@@ -35,6 +35,8 @@ Protokollartefakt-Bündel:
 - [Protokollglossar](CONTEXT.md);
 - [21 JSON-Schemata](schemas/README.md);
 - [gültige und ungültige Konformitätsvektoren](conformance/manifest.json);
+- [Kryptografiebündel mit 22 Fällen für die neun Schemaprofile des Signed Document Verification
+  Profile](cryptography/README.md);
 - [Markenressourcen](assets/brand/).
 
 Implementierungen müssen eine veröffentlichte Protokollversion oder einen Commit
@@ -60,6 +62,13 @@ aber nicht ausreichend; Implementierungen müssen außerdem die Regeln der
 Spezifikation zu Zustandsmaschine, Reihenfolge, Epoch, Lease, Budget, Hierarchie,
 Signatur und Autorisierung durchsetzen.
 
+Das unabhängige Kryptografie-Manifest enthält 22 Fälle für die neun Schemaprofile des Signed
+Document Verification Profile. Sein Bestehen weist die Konformität mit den deklarierten
+Auswertungen über die sechs kryptografischen Prüfschritte aus Abschnitt 6.4 nach; es weist weder
+die Validierung des First-Admission Record oder des historischen Vertrauens noch die Aktualitäts-
+oder Uhrabweichungsprüfung für Command oder die Autorisierung des Unterzeichners gemäß geltender
+Rolle und Richtlinie nach.
+
 Die Python-Implementierung kann die Vektoren dieses Repositorys direkt ausführen:
 
 ```bash
@@ -69,12 +78,14 @@ uv run --project ../python-sdk missionweaveprotocol-conformance --root .
 Eine Repository-lokale Validierung ist ebenfalls verfügbar:
 
 ```bash
-python -m pip install -r requirements-validation.txt
+python -m pip install --require-hashes --no-deps --only-binary=:all: \
+  -r requirements-cryptography.lock
 python scripts/check_repository_policy.py
 python scripts/validate_protocol.py
+python scripts/validate_crypto_vectors.py
 ```
 
 ## Lizenz
 
-Spezifikation, Schemas, Konformitätsvektoren und Markenressourcen sind unter
+Spezifikation, Schemas, Konformitäts- und Kryptografievektoren sowie Markenressourcen sind unter
 [Apache-2.0](LICENSE) lizenziert. Die Lizenz gewährt keine Markenrechte.

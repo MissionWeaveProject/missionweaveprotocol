@@ -31,6 +31,8 @@ This repository is the source of truth for the versioned protocol artifact bundl
 - [protocol glossary](CONTEXT.md);
 - [21 JSON Schemas](schemas/README.md);
 - [valid and invalid conformance vectors](conformance/manifest.json);
+- [signed-document cryptography bundle covering nine schema profiles with 22
+  cases](cryptography/README.md);
 - [brand assets](assets/brand/).
 
 Implementations must pin a released protocol version or commit. They may vendor the schemas and
@@ -52,6 +54,12 @@ documents. Structural schema conformance is necessary but not sufficient; implem
 also enforce the state-machine, ordering, epoch, lease, budget, hierarchy, signature, and
 authorization rules in the specification.
 
+The independent cryptography manifest contains 22 cases covering all nine schema profiles in the
+Signed Document Verification Profile. Passing it demonstrates conformance to the declared
+evaluations across the six cryptographic verification stages in Section 6.4; it does not prove
+First-Admission Record or historical-trust validation, Command freshness or clock-skew
+enforcement, or signer authorization under applicable role and policy.
+
 The Python implementation can run this repository's vectors directly:
 
 ```bash
@@ -61,12 +69,14 @@ uv run --project ../python-sdk missionweaveprotocol-conformance --root .
 Repository-local validation is also available:
 
 ```bash
-python -m pip install -r requirements-validation.txt
+python -m pip install --require-hashes --no-deps --only-binary=:all: \
+  -r requirements-cryptography.lock
 python scripts/check_repository_policy.py
 python scripts/validate_protocol.py
+python scripts/validate_crypto_vectors.py
 ```
 
 ## License
 
-The specification, schemas, conformance vectors, and brand assets are licensed under
-[Apache-2.0](LICENSE). The license does not grant trademark rights.
+The specification, schemas, conformance and cryptography vectors, and brand assets are licensed
+under [Apache-2.0](LICENSE). The license does not grant trademark rights.

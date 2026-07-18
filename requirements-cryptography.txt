@@ -1,0 +1,6 @@
+# Direct dependency constraints for compiling requirements-cryptography.lock.
+# Install the lock file, not this input, for reproducible validation.
+cryptography>=44,<50
+jsonschema[format]>=4.24,<5
+referencing>=0.36,<1
+rfc8785==0.1.4

@@ -32,6 +32,8 @@ Ce dépôt est la source de vérité pour l’ensemble versionné des artefacts 
 - [glossaire du protocole](CONTEXT.md) ;
 - [21 schémas JSON](schemas/README.md) ;
 - [vecteurs de conformité valides et invalides](conformance/manifest.json) ;
+- [ensemble cryptographique de 22 cas pour les neuf profils de schéma du Signed Document
+  Verification Profile](cryptography/README.md) ;
 - [ressources de marque](assets/brand/).
 
 Les implémentations doivent fixer une version publiée ou un commit du protocole. Elles peuvent
@@ -56,6 +58,13 @@ implémentations doivent également appliquer les règles de machine à états, 
 d’epoch, d’Execution Lease, de budget, de hiérarchie, de signature et d’autorisation définies dans
 la spécification.
 
+Le manifeste cryptographique indépendant contient 22 cas couvrant les neuf profils de schéma du
+Signed Document Verification Profile. Sa réussite démontre la conformité aux évaluations déclarées
+pour les six étapes de vérification cryptographique de la section 6.4 ; elle ne démontre ni la
+validation du First-Admission Record ou de la confiance historique, ni la fraîcheur des Command ou
+le contrôle du décalage d’horloge, ni l’autorisation du signataire selon son rôle et les politiques
+applicables.
+
 L’implémentation Python peut exécuter directement les vecteurs de ce dépôt :
 
 ```bash
@@ -65,12 +74,15 @@ uv run --project ../python-sdk missionweaveprotocol-conformance --root .
 Une validation locale depuis ce dépôt est également disponible :
 
 ```bash
-python -m pip install -r requirements-validation.txt
+python -m pip install --require-hashes --no-deps --only-binary=:all: \
+  -r requirements-cryptography.lock
 python scripts/check_repository_policy.py
 python scripts/validate_protocol.py
+python scripts/validate_crypto_vectors.py
 ```
 
 ## Licence
 
-La spécification, les schémas, les vecteurs de conformité et les ressources de marque sont placés
-sous licence [Apache-2.0](LICENSE). Cette licence n’accorde aucun droit sur les marques.
+La spécification, les schémas, les vecteurs de conformité, les vecteurs cryptographiques et les
+ressources de marque sont placés sous licence [Apache-2.0](LICENSE). Cette licence n’accorde aucun
+droit sur les marques.
