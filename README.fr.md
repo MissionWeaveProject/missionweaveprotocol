@@ -45,10 +45,26 @@ normatives.
 - [MissionWeaveProtocol Python SDK](https://github.com/missionweaveprotocol/python-sdk) —
   implémentation de référence officielle en Python, environnement d’exécution des Agent, passerelle
   de Group, outil de conformité et preuve de concept.
+- [MissionWeaveProtocol Go SDK](https://github.com/missionweaveprotocol/go-sdk) — SDK de protocole
+  officiel pour Go, avec bindings de protocole et conformité des schémas et vecteurs.
+- [MissionWeaveProtocol TypeScript SDK](https://github.com/missionweaveprotocol/typescript-sdk) —
+  SDK de protocole officiel pour TypeScript, avec bindings de protocole et conformité des schémas
+  et vecteurs.
+- [MissionWeaveProtocol Java SDK](https://github.com/missionweaveprotocol/java-sdk) — SDK de
+  protocole officiel pour Java, avec bindings de protocole et conformité des schémas et vecteurs.
+- [MissionWeaveProtocol Rust SDK](https://github.com/missionweaveprotocol/rust-sdk) — SDK de
+  protocole officiel pour Rust, avec bindings de protocole et conformité des schémas et vecteurs.
+- [MissionWeaveProtocol C++ SDK](https://github.com/missionweaveprotocol/cpp-sdk) — SDK de protocole
+  officiel pour C++, avec bindings de protocole et conformité des schémas et vecteurs.
 
 Les versions du protocole et des implémentations sont gérées indépendamment. Une implémentation doit
 publier une déclaration de compatibilité explicite au lieu de supposer que des numéros de version
 identiques impliquent une compatibilité.
+
+Python est l’environnement d’exécution de référence complet. Les SDK Go, TypeScript, Java, Rust et
+C++ se concentrent actuellement sur les bindings de protocole et la conformité des schémas et
+vecteurs ; ils ne revendiquent pas une conformité comportementale complète de l’environnement
+d’exécution.
 
 ## Conformité
 
