@@ -25,9 +25,25 @@ An organization-signed description of an Agent's stable identity and verified ca
 _Avoid_: Profile, presence
 
 **Agent Registry**:
-The Organization-controlled source of current Agent Cards, signing keys, capability evidence, and
-their validity status.
+The Organization-controlled source of current Agent Cards, immutable signing-key bindings, their
+validity history, and capability evidence for registered Principals.
 _Avoid_: Presence service, peer discovery
+
+**Signed Document**:
+A durable protocol object whose required top-level signature authenticates its canonical content
+under one Signed Document Verification Profile.
+_Avoid_: Session authentication, transport frame
+
+**Signed Document Verification Profile**:
+The normative mapping from one durable signed-document schema to its protected signed time and
+expected signer for signature and key-validity verification.
+_Avoid_: Session authentication, algorithm negotiation
+
+**First-Admission Record**:
+An Organization-controlled acceptance record that binds a Signed Document's signing hash, signing
+key ID, signer Principal, and trusted acceptance time. It is external to the Signed Document and
+its Verification Profile.
+_Avoid_: Local first-seen time, signer-supplied timestamp, self-authenticating Event
 
 **Principal**:
 An authenticated Agent, human, or Organization service that can be named as the actor or owner of
