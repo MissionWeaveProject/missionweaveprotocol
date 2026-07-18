@@ -62,7 +62,7 @@ L’implémentation Python peut exécuter directement les vecteurs de ce dépôt
 uv run --project ../python-sdk missionweaveprotocol-conformance --root .
 ```
 
-Une validation locale au dépôt est également disponible :
+Une validation locale depuis ce dépôt est également disponible :
 
 ```bash
 python -m pip install -r requirements-validation.txt

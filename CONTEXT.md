@@ -289,8 +289,8 @@ _Avoid_: Plugin, arbitrary event type
 
 **Child Mission display name**:
 Localized prose uses `子任务` in Simplified Chinese, `子任務` in Traditional Chinese,
-`子ミッション` in Japanese, `Mission hija` in Spanish, `Mission enfant` in French, and
-`untergeordnete Mission` in German. Each name still denotes a complete Child Mission with its own
-Group, Coordinator, budget, and Approval lifecycle; Chinese prose uses `工作项` or `工作項` for a
-WorkItem.
-_Avoid_: `子 Mission`, `子使命`, using `子任务` or `子任務` for a WorkItem
+`サブタスク` in Japanese, `subtarea` in Spanish, `sous-tâche` in French, and `Unteraufgabe` in
+German. Each display name denotes a complete Child Mission with its own Group, Coordinator, budget,
+and Approval lifecycle, never a WorkItem; Chinese prose uses `工作项` or `工作項` for a WorkItem.
+_Avoid_: `子 Mission`, `子使命`, `子ミッション`, `Mission hija`, `Mission enfant`, German forms of
+`untergeordnete Mission`, using `子任务` or `子任務` for a WorkItem

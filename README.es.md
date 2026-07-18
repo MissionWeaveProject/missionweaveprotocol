@@ -12,8 +12,8 @@
 
 MissionWeaveProtocol es un protocolo de cooperación orientado a grupos para Agent autónomos que
 trabajan dentro de una misma Organization. Cada Agent puede participar simultáneamente en varios
-Mission Group, intercambiar Message en modo full-duplex con sus pares, aceptar elementos WorkItem
-explícitos en colas específicas de cada Group y programar trabajo entre distintos Group según su
+Mission Group, intercambiar Message en modo full-duplex con sus pares, aceptar WorkItem explícitos
+en colas específicas de cada Group y programar trabajo entre distintos Group según su
 propia política local.
 
 Este repositorio define **MissionWeaveProtocol 0.1**. Su espacio de nombres estable en el protocolo

@@ -12,9 +12,9 @@
 
 MissionWeaveProtocol ist ein Group-orientiertes Kooperationsprotokoll für
 autonome Agent, die innerhalb einer Organization arbeiten. Agent können an vielen
-Mission Group teilnehmen, Vollduplex-Message mit Peers austauschen, ausdrückliche
+Mission Groups teilnehmen, Vollduplex-Message mit Peers austauschen, ausdrückliche
 WorkItem in Group-spezifische Warteschlangen aufnehmen und Arbeit gemäß ihrer
-eigenen lokalen Richtlinie über mehrere Group hinweg planen.
+eigenen lokalen Richtlinie über mehrere Groups hinweg planen.
 
 Dieses Repository definiert **MissionWeaveProtocol 0.1**. Sein stabiler
 Wire-Namespace lautet `missionweaveprotocol`: Protokollkennungen verwenden
@@ -33,7 +33,7 @@ Protokollartefakt-Bündel:
 
 - [normative Spezifikation](spec/PROTOCOL.md);
 - [Protokollglossar](CONTEXT.md);
-- [21 JSON Schemas](schemas/README.md);
+- [21 JSON-Schemata](schemas/README.md);
 - [gültige und ungültige Konformitätsvektoren](conformance/manifest.json);
 - [Markenressourcen](assets/brand/).
 
@@ -44,7 +44,7 @@ einbetten, doch diese Kopien sind nicht normativ.
 ## Implementierungen
 
 - [MissionWeaveProtocol Python SDK](https://github.com/missionweaveprotocol/python-sdk)
-  — offizielle Python-Referenzimplementierung, Agent Runtime, Group Gateway,
+  — offizielle Python-Referenzimplementierung, Agent-Runtime, Group-Gateway,
   Konformitäts-Runner und POC.
 
 Protokoll- und Implementierungs-Releases werden unabhängig voneinander
@@ -54,13 +54,13 @@ Kompatibilität abzuleiten.
 
 ## Konformität
 
-Das Manifest enthält derzeit 52 Fälle: 25 erwartbar gültige Dokumente und 27
-erwartbar ungültige Dokumente. Strukturelle Schema-Konformität ist notwendig,
+Das Manifest enthält derzeit 52 Fälle: 25 als gültig erwartete Dokumente und 27
+als ungültig erwartete Dokumente. Strukturelle Schema-Konformität ist notwendig,
 aber nicht ausreichend; Implementierungen müssen außerdem die Regeln der
 Spezifikation zu Zustandsmaschine, Reihenfolge, Epoch, Lease, Budget, Hierarchie,
 Signatur und Autorisierung durchsetzen.
 
-Die Python-Implementierung kann die Vektoren dieses Repository direkt ausführen:
+Die Python-Implementierung kann die Vektoren dieses Repositorys direkt ausführen:
 
 ```bash
 uv run --project ../python-sdk missionweaveprotocol-conformance --root .
