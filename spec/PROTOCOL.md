@@ -90,10 +90,12 @@ A content hash in v0.1 MUST use lower-case hexadecimal SHA-256 and the form
 `sha256:<64 hex digits>`. Integers used for sequences, revisions, epochs, and budgets MUST be
 non-negative safe JSON integers; Group Event sequences start at 1.
 
-An identifier MUST be globally unique within the identifier's kind and MUST be serialized as
-an absolute URI. UUID identifiers SHOULD use lower-case `urn:uuid:` form. Implementations
-MUST compare identifiers byte-for-byte after the URI normalization rules chosen by the
-issuing Organization; recipients MUST NOT invent additional normalization.
+An identifier MUST be globally unique within the identifier's kind and MUST be serialized as an
+absolute RFC 3986 URI, not an IRI-only spelling. Non-ASCII characters MUST be UTF-8 percent-encoded,
+and validation MUST consume the complete string; whitespace, control characters, and trailing line
+terminators are invalid. UUID identifiers SHOULD use lower-case `urn:uuid:` form. Implementations
+MUST compare identifiers byte-for-byte after the URI normalization rules chosen by the issuing
+Organization; recipients MUST NOT invent additional normalization.
 
 ## 3. Terms and roles
 

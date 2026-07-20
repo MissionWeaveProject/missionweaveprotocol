@@ -541,8 +541,8 @@
     },
     {
       "path": "schemas/common.schema.json",
-      "byteLength": 6611,
-      "sha256": "sha256:4d3e1c0910f36f49e16ce3d2323aab4fa3914554d20f9991d7a731966f5c6acf"
+      "byteLength": 6882,
+      "sha256": "sha256:f63b1fc59cb270f5dea0ff9093d75241c96dde2fd87e62d44c277131215679b9"
     },
     {
       "path": "schemas/context-package.schema.json",
@@ -1698,5 +1698,5 @@
       ]
     }
   ],
-  "artifactDigest": "sha256:487e18c1ea7053432953f28d1496ae4fdb8e9d42c2eeb8e94f9b21f8cc2596a2"
+  "artifactDigest": "sha256:44de714825833825684775dda8baa4ec13e1ea8298050e9b31d2d5de6a67b69c"
 }

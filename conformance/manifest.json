@@ -150,6 +150,24 @@
     "valid": false
   },
   {
+    "name": "invalid Command action ID with a trailing line feed",
+    "schema": "schemas/command.schema.json",
+    "instance": "conformance/vectors/invalid/command-action-id-trailing-line-feed.json",
+    "valid": false
+  },
+  {
+    "name": "invalid Command action ID using a relative URI reference",
+    "schema": "schemas/command.schema.json",
+    "instance": "conformance/vectors/invalid/command-action-id-relative-reference.json",
+    "valid": false
+  },
+  {
+    "name": "invalid Command action ID using an IRI-only spelling",
+    "schema": "schemas/command.schema.json",
+    "instance": "conformance/vectors/invalid/command-action-id-iri-only.json",
+    "valid": false
+  },
+  {
     "name": "invalid human Command carrying an Agent Session Epoch",
     "schema": "schemas/command.schema.json",
     "instance": "conformance/vectors/invalid/human-command-with-session-epoch.json",
