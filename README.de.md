@@ -76,7 +76,7 @@ Runtime-Konformität.
 
 ## Konformität
 
-Das Manifest enthält derzeit 52 Fälle: 25 als gültig erwartete Dokumente und 27
+Das Manifest enthält derzeit 55 Fälle: 25 als gültig erwartete Dokumente und 30
 als ungültig erwartete Dokumente. Strukturelle Schema-Konformität ist notwendig,
 aber nicht ausreichend; Implementierungen müssen außerdem die Regeln der
 Spezifikation zu Zustandsmaschine, Reihenfolge, Epoch, Lease, Budget, Hierarchie,
