@@ -319,6 +319,36 @@ MUST retain sufficient indexes and history to establish both key-ID uniqueness a
 public-key or tuple aliases. Key resolution MUST fail closed when the Registry cannot establish
 those invariants for the resolved binding.
 
+For one Signed Document verification, the Registry evidence used at stage 4 MUST be scoped to
+exactly one Organization and MUST represent one coherent authoritative Registry revision applicable
+to the verification decision. It MUST be sufficient to establish the immutable binding and
+Organization-wide uniqueness invariants for all signing-key bindings and the complete retained
+validity history needed by this profile. The implementation MUST validate the evidence before using
+`signature.keyId` to select a Registry record; an invalid unrelated binding or history record MUST
+cause stage 4 to fail.
+
+An implementation MAY establish these properties from a complete Registry snapshot or from
+authoritative indexes and historical queries that prove the same Organization-wide absence,
+uniqueness, and history claims. A key-filtered projection, partial cache, incomplete page set, or
+otherwise unspecified coverage MUST NOT be accepted unless the implementation can establish the
+same claims from authoritative state. The requested key ID is routing context only and MUST NOT be
+treated as permission to omit evidence needed for the Organization-wide checks.
+
+The key-resolution adapter is a trusted deployment seam in v0.1. When it supplies Registry
+evidence to a verifier, it MUST establish the required Organization scope, applicable authoritative
+revision, evidence completeness, and historical coverage or report that it cannot. A superseded
+Registry state MUST NOT be presented as current evidence for a new verification or first-admission
+decision. The Organization MUST define how the adapter establishes revision currency or
+applicability. MissionWeaveProtocol 0.1 does not standardize revision identifiers, a portable Agent
+Registry snapshot wire artifact, transport, freshness mechanism, or cryptographic completeness
+proof.
+
+An authoritative unknown-key conclusion MUST be made only after the required completeness has
+been established for the applicable authoritative revision. Inability to establish completeness,
+unavailable Registry evidence, and an authoritatively absent key all fail stage 4. An implementation
+MAY retain distinct protected diagnostics for those conditions, but they MUST remain
+indistinguishable on the wire as required below.
+
 Key-validity status is historical state, not part of the immutable identity binding. The Registry
 MUST preserve the original `validFrom` and every change to `validUntil` or `revokedAt` through
 append-only or explicitly versioned validity-status records. The first registered `validFrom` is
@@ -350,10 +380,11 @@ Event, or execute a transition before every stage succeeds:
    `createdAt` equality without transformation, expected-signer rule selection, canonical unpadded
    base64url decoding of `signature.value`, and strict `Renc` and `Senc` validation of a 64-byte
    Ed25519 signature;
-4. resolve the pinned key under the expected signer and validate its immutable identity binding,
-   Organization-wide no-reuse and no-alias invariants, and validity interval at the protected
-   signed time, including canonical unpadded base64url decoding and strict point validation of a
-   32-byte Ed25519 public key;
+4. obtain complete Organization-scoped Registry evidence, validate every binding needed to
+   establish the immutable signing-key binding, Organization-wide no-reuse and no-alias invariants,
+   and complete retained validity history, then select the pinned key under the expected signer and
+   validate its protected-time interval, including canonical unpadded base64url decoding and strict
+   point validation of its 32-byte Ed25519 public key;
 5. omit exactly the top-level `signature` member, reject values outside the RFC 8785 and I-JSON data
    model defined in Section 2, and produce JCS signing bytes from the received values without
    timestamp or number transformation beyond the required RFC 8785 binary64 serialization; and
